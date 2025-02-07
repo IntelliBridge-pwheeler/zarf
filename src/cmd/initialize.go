@@ -39,6 +39,7 @@ func newInitCommand() *cobra.Command {
 		Short:   lang.CmdInitShort,
 		Long:    lang.CmdInitLong,
 		Example: lang.CmdInitExample,
+		Args:    cobra.MaximumNArgs(1),
 		RunE:    o.run,
 	}
 
@@ -92,20 +93,28 @@ func newInitCommand() *cobra.Command {
 	return cmd
 }
 
-func (o *initOptions) run(cmd *cobra.Command, _ []string) error {
+func (o *initOptions) run(cmd *cobra.Command, args []string) error {
 	ctx := cmd.Context()
 	if err := validateInitFlags(); err != nil {
 		return fmt.Errorf("invalid command flags were provided: %w", err)
 	}
 
-	// Continue running package deploy for all components like any other package
-	initPackageName := sources.GetInitPackageName()
-	pkgConfig.PkgOpts.PackageSource = initPackageName
+	if len(args) > 0 {
+		// return an error of the path args[0] does not exist
+		if helpers.InvalidPath(args[0]) {
+			return fmt.Errorf("the path %s does not exist", args[0])
+		}
+		pkgConfig.PkgOpts.PackageSource = args[0]
+	} else {
+		// Continue running package deploy for all components like any other package
+		initPackageName := sources.GetInitPackageName()
+		pkgConfig.PkgOpts.PackageSource = initPackageName
 
-	// Try to use an init-package in the executable directory if none exist in current working directory
-	var err error
-	if pkgConfig.PkgOpts.PackageSource, err = findInitPackage(cmd.Context(), initPackageName); err != nil {
-		return err
+		// Try to use an init-package in the executable directory if none exist in current working directory
+		var err error
+		if pkgConfig.PkgOpts.PackageSource, err = findInitPackage(cmd.Context(), initPackageName); err != nil {
+			return err
+		}
 	}
 
 	src, err := sources.New(ctx, &pkgConfig.PkgOpts)
