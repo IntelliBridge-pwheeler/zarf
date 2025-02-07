@@ -153,6 +153,12 @@ func initViper() *viper.Viper {
 	}
 
 	vConfigError = v.ReadInConfig()
+	if vConfigError != nil {
+		// Only log the error if it's not a file not found error
+		if _, notFound := vConfigError.(viper.ConfigFileNotFoundError); !notFound {
+			logger.Default().Warn("unable to load config file", "error", vConfigError)
+		}
+	}
 
 	return v
 }
