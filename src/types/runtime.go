@@ -130,6 +130,8 @@ type ZarfInitOptions struct {
 	ArtifactServer ArtifactServerInfo
 	// StorageClass of the k8s cluster Zarf is initializing
 	StorageClass string
+	// The path to the exact init package to use
+	PackagePath string
 }
 
 // ZarfCreateOptions tracks the user-defined options used to create the package.
